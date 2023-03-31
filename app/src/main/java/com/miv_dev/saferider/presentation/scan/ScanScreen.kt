@@ -1,4 +1,4 @@
-package com.miv_dev.saferider.ui.screens
+package com.miv_dev.saferider.presentation.scan
 
 import android.bluetooth.BluetoothDevice
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -17,11 +17,10 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.miv_dev.saferider.core.utils.SnackbarVisualsWithError
-import com.miv_dev.saferider.ui.components.ScanningAnimation
-import com.miv_dev.saferider.ui.view_models.Empty
-import com.miv_dev.saferider.ui.view_models.Error
-import com.miv_dev.saferider.ui.view_models.Loading
-import com.miv_dev.saferider.ui.view_models.ScanScreenVM
+import com.miv_dev.saferider.presentation.components.ScanningAnimation
+import com.miv_dev.saferider.presentation.main.Empty
+import com.miv_dev.saferider.presentation.main.Error
+import com.miv_dev.saferider.presentation.main.Loading
 import kotlinx.coroutines.launch
 
 @Composable
