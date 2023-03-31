@@ -1,4 +1,4 @@
-package com.miv_dev.saferider.ui.components
+package com.miv_dev.saferider.presentation.components
 
 import androidx.compose.animation.Animatable
 import androidx.compose.animation.AnimatedContent

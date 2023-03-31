@@ -1,4 +1,4 @@
-package com.miv_dev.saferider.ui.view_models
+package com.miv_dev.saferider.presentation.main
 
 import androidx.lifecycle.ViewModel
 import com.miv_dev.saferider.data.BleRepositoryImpl

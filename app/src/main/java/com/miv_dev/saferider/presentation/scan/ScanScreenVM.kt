@@ -1,4 +1,4 @@
-package com.miv_dev.saferider.ui.view_models
+package com.miv_dev.saferider.presentation.scan
 
 import android.bluetooth.BluetoothDevice
 import android.util.Log
@@ -6,6 +6,10 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.miv_dev.saferider.data.*
+import com.miv_dev.saferider.presentation.main.Empty
+import com.miv_dev.saferider.presentation.main.Error
+import com.miv_dev.saferider.presentation.main.Loading
+import com.miv_dev.saferider.presentation.main.UiState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.flow.MutableStateFlow
