@@ -8,16 +8,17 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.miv_dev.saferider.navigation.AppNavGraph
 import com.miv_dev.saferider.navigation.rememberNavigationState
+import com.miv_dev.saferider.presentation.scan.ScanScreen
 import com.miv_dev.saferider.ui.theme.SafeRiderTheme
-import dagger.hilt.android.AndroidEntryPoint
 
-@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -66,8 +67,21 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun MainScreen() {
     val navigatorState = rememberNavigationState()
+    val snackbarHostState = remember { SnackbarHostState() }
 
     Scaffold(
+        snackbarHost = {
+            SnackbarHost(
+                snackbarHostState
+            ) { data ->
+                Snackbar(
+                    modifier = Modifier
+                        .padding(12.dp),
+                ) {
+                    Text(data.visuals.message)
+                }
+            }
+        },
         bottomBar = {
             BottomAppBar(
 
@@ -110,9 +124,9 @@ fun MainScreen() {
         AppNavGraph(
             navHostController = navigatorState.navHostController,
             mainScreenContent = {
-                Column(Modifier.padding(paddingValues)) {
-                    Text("main")
-                }
+
+                ScanScreen(paddingValues, snackbarHostState)
+
             },
             scanScreenContent = {
                 Column(Modifier.padding(paddingValues)) {

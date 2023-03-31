@@ -5,22 +5,21 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
-import com.miv_dev.saferider.core.ScanError
 import com.miv_dev.saferider.core.services.BLEService
 import com.welie.blessed.BluetoothCentralManager
 import com.welie.blessed.BluetoothPeripheral
-import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.channelFlow
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 
 interface BluetoothService {
 
-    val scanning: SharedFlow<Result<BluetoothDevice>>
-    fun startScan()
-    fun stopScan()
     fun disconnect()
     fun connect(mac: String)
+    fun scan(): Flow<Scan>
 
 }
 
@@ -28,60 +27,49 @@ class BluetoothServiceImpl @Inject constructor(
     private val context: Context,
 ) : BluetoothService {
 
-    private val scope = CoroutineScope(Dispatchers.Default)
 
     private val central by lazy {
         BluetoothCentralManager(context)
     }
 
 
-    private val _scanning = MutableSharedFlow<Result<BluetoothDevice>>()
-    override val scanning = _scanning.asSharedFlow()
+    private val scannedDevices = mutableListOf<ScanResult>()
 
-    private val scannedDevices = mutableListOf<Device>()
 
-    override fun startScan() {
-        scannedDevices.clear()
-        try {
-            central.scanForPeripherals({ peripheral, scanResult ->
-                scope.launch {
-                    val device = Device(
-                        peripheral, scanResult.device
-                    )
 
+    override fun scan(): Flow<Scan> = channelFlow {
+        launch {
+            delay(5_000)
+            central.stopScan()
+
+        }
+        central.scanForPeripherals({ peripheral, scanResult ->
+            launch {
+                ScanResult(
+                    peripheral, scanResult.device
+                ).also { device ->
                     if (!scannedDevices.contains(device)) {
                         scannedDevices.add(device)
-                        _scanning.emit(Result.success(scanResult.device))
+                        send(Scan.Found(device))
                     }
                 }
-            }) {
-                scope.launch {
-                    _scanning.emit(Result.failure(ScanError(it.name)))
-                }
+
+
             }
-        } catch (e: SecurityException) {
-            scope.launch {
-                _scanning.emit(
-                    Result.failure(
-                        Throwable(
-                            "Permission Denied!"
-                        )
-                    )
-                )
+        }) {
+            launch {
+                send(Scan.Error(Throwable(it.name)))
             }
         }
-
-
     }
 
-    override fun stopScan() = central.stopScan()
     override fun disconnect() {
         Intent(context, BLEService::class.java).also { intent ->
             context.stopService(intent)
         }
     }
 
-    override fun connect(mac:String) {
+    override fun connect(mac: String) {
         Intent(context, BLEService::class.java).also { intent ->
             intent.action = BLEService.ACTION_CONNECT_DEVICE
             intent.putExtra(BLEService.EXTRA_DEVICE_MAC, mac)
@@ -89,7 +77,7 @@ class BluetoothServiceImpl @Inject constructor(
             context.startForegroundService(intent)
         }
 
-        context.registerReceiver(object : BroadcastReceiver(){
+        context.registerReceiver(object : BroadcastReceiver() {
             override fun onReceive(p0: Context?, p1: Intent?) {
                 p1?.let {
                     val btLevel = it.getIntExtra(BLEService.EXTRA_FW_BATTERY_LEVEL, -1)
@@ -117,7 +105,12 @@ class BluetoothServiceImpl @Inject constructor(
 }
 
 
-data class Device(
+sealed class Scan {
+    class Found(val result: ScanResult): Scan()
+    class Error(val e: Throwable) : Scan()
+}
+
+data class ScanResult(
     val peripheral: BluetoothPeripheral,
-    val info: BluetoothDevice
+    val device: BluetoothDevice
 )
